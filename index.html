@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRTG Report Data Extractor + Export PDF</title>
-    <link rel="stylesheet" href="output.css">
-    <!-- PDF.js library -->
+    <title>PRTG Pro: Chart + 95th Percentile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <!-- jsPDF & AutoTable for Export -->
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -31,17 +34,16 @@
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-7xl mx-auto">
         <header class="mb-8">
             <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
-                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                PRTG Report Extractor
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                PRTG Report Extractor <span class="text-sm bg-indigo-100 text-indigo-700 px-2 py-1 rounded ml-2">PRO v2.0</span>
             </h1>
-            <p class="text-slate-600">Ekstrak data ringkasan trafik dari teks copy-paste atau file PDF PRTG.</p>
+            <p class="text-slate-600">Analisis Trafik, Visualisasi, dan Perhitungan 95th Percentile.</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Left Panel: Input -->
             <div class="lg:col-span-1 space-y-4">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                     <h3 class="font-semibold text-slate-700 mb-4 flex items-center">
@@ -67,10 +69,37 @@
                 </div>
             </div>
 
-            <!-- Right Panel: Text Area -->
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 h-full flex flex-col">
-                    <div class="flex justify-between items-center mb-4">
+                    
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
+                        <h4 class="text-sm font-bold text-indigo-800 mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                            Filter Data (Grafik & Tabel)
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-indigo-700 mb-1">Tanggal</label>
+                                <input type="date" id="filterDate" class="w-full px-3 py-1.5 border border-indigo-200 rounded text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-indigo-700 mb-1">Shift</label>
+                                <select id="filterShift" class="w-full px-3 py-1.5 border border-indigo-200 rounded text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="all">Semua Jam</option>
+                                    <option value="1">Shift 1 (08:00 - 17:00)</option>
+                                    <option value="2">Shift 2 (17:00 - 21:00)</option>
+                                    <option value="3">Shift 3 (21:00 - 04:00)</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="applyFilters()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">
+                                    Terapkan Filter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-2">
                         <label class="block text-sm font-semibold text-slate-700">Preview Teks / Input Manual:</label>
                         <div id="loadingIndicator" class="hidden flex items-center gap-2 text-blue-600 text-xs font-medium">
                             <div class="loading-spinner"></div> Memproses PDF...
@@ -78,88 +107,101 @@
                     </div>
                     <textarea 
                         id="rawInput" 
-                        class="flex-grow w-full p-4 text-xs font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+                        class="flex-grow w-full p-4 text-xs font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-24"
                         placeholder="Tempel data teks di sini atau upload PDF..."></textarea>
                     
                     <div class="flex gap-3 mt-4">
                         <button 
                             onclick="processData()"
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-semibold transition-colors flex items-center">
-                            Ekstrak Data
+                            class="bg-slate-800 hover:bg-slate-900 text-white px-8 py-2.5 rounded-lg font-semibold transition-colors flex items-center">
+                            Proses Data Awal
                         </button>
                         <button 
                             onclick="clearInput()"
                             class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-2.5 rounded-lg font-semibold transition-colors">
-                            Hapus
+                            Reset
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Results Table -->
         <div id="resultContainer" class="hidden space-y-6">
-            <!-- Metadata Laporan -->
+            
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 class="font-bold text-slate-800 mb-4 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    Informasi Laporan
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Judul Laporan</label>
-                        <input type="text" id="pdfTitle" class="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contoh: LAPORAN TRAFIK HARIAN">
+                         <h3 class="font-bold text-slate-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            Informasi Laporan
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Judul Laporan</label>
+                                <input type="text" id="pdfTitle" class="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contoh: LAPORAN TRAFIK HARIAN">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Keterangan Filter</label>
+                                <input type="text" id="activeFilterInfo" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm text-slate-600 cursor-default" readonly value="Semua Data">
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Subjudul</label>
-                        <input type="text" id="pdfSubtitle" class="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contoh: UNIT NETWORK OPERATIONS">
+                     <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Catatan Tambahan</label>
+                        <textarea id="pdfNotes" class="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none h-20" placeholder="Tambahkan catatan khusus untuk laporan ini..."></textarea>
                     </div>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Rentang Tanggal (Terdeteksi)</label>
-                    <input type="text" id="detectedRange" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm text-slate-600 cursor-default" readonly>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Catatan Tambahan</label>
-                    <textarea id="pdfNotes" class="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none h-20" placeholder="Tambahkan catatan khusus di sini..."></textarea>
                 </div>
             </div>
 
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 class="text-xl font-bold text-slate-800">Hasil Ekstraksi</h2>
-                <div class="flex gap-2">
-                    <button 
-                        onclick="exportToPDF()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors shadow-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        Export PDF
-                    </button>
-                    <button 
-                        onclick="copyTable()"
-                        class="bg-slate-800 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors shadow-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-1 4h.01M9 16h.01M9 12h.01M12 12h.01M12 16h.01M15 12h.01M15 16h.01"></path></svg>
-                        Salin Tabel
-                    </button>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-800 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                        Grafik Trafik (Sesuai Filter)
+                    </h3>
+                    <div class="text-xs text-slate-400">Menampilkan data berdasarkan filter tanggal/jam yang aktif</div>
+                </div>
+                <div class="w-full h-80 relative">
+                    <canvas id="trafficChart"></canvas>
                 </div>
             </div>
 
-            <div class="table-container bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
-                <table class="w-full text-left text-xs border-collapse" id="resultTable">
-                    <thead>
-                        <tr class="bg-slate-900 text-white">
-                            <th class="px-4 py-4 font-semibold border-b">Device Info</th>
-                            <th class="px-4 py-4 font-semibold border-b text-center">Uptime</th>
-                            <th class="px-4 py-4 font-semibold border-b">Req Sensor</th>
-                            <th class="px-4 py-4 font-semibold border-b text-center">Coverage</th>
-                            <th class="px-4 py-4 font-semibold border-b bg-blue-900">Avg Traffic IN</th>
-                            <th class="px-4 py-4 font-semibold border-b bg-blue-900">Highest (Peak)</th>
-                            <th class="px-4 py-4 font-semibold border-b bg-blue-900">Lowest (Trough)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-200">
-                        <!-- Data rows -->
-                    </tbody>
-                </table>
+            <div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                    <h2 class="text-xl font-bold text-slate-800">Tabel Ringkasan</h2>
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="exportToPDF()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors shadow-sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Export PDF
+                        </button>
+                        <button 
+                            onclick="copyTable()"
+                            class="bg-slate-800 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors shadow-sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-1 4h.01M9 16h.01M9 12h.01M12 12h.01M12 16h.01M15 12h.01M15 16h.01"></path></svg>
+                            Salin Tabel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+                    <table class="w-full text-left text-xs border-collapse" id="resultTable">
+                        <thead>
+                            <tr class="bg-slate-900 text-white">
+                                <th class="px-4 py-4 font-semibold border-b">Device Info</th>
+                                <th class="px-4 py-4 font-semibold border-b text-center">Uptime</th>
+                                <th class="px-4 py-4 font-semibold border-b text-center">Coverage</th>
+                                <th class="px-4 py-4 font-semibold border-b bg-blue-900">Avg Traffic</th>
+                                <th class="px-4 py-4 font-semibold border-b bg-indigo-900 border-l border-indigo-700">95th Percentile</th>
+                                <th class="px-4 py-4 font-semibold border-b bg-blue-900">Highest (Peak)</th>
+                                <th class="px-4 py-4 font-semibold border-b bg-blue-900">Lowest (Trough)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-200">
+                            </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -172,7 +214,20 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let extractedData = [];
+        let globalRawData = [];
+        let extractedData = []; 
+        let chartInstance = null; // Store chart instance to update/destroy
+
+        // Warna untuk Line Chart (Palette)
+        const CHART_COLORS = [
+            'rgb(59, 130, 246)',   // Blue
+            'rgb(239, 68, 68)',    // Red
+            'rgb(16, 185, 129)',   // Green
+            'rgb(245, 158, 11)',   // Amber
+            'rgb(139, 92, 246)',   // Violet
+            'rgb(236, 72, 153)',   // Pink
+            'rgb(99, 102, 241)'    // Indigo
+        ];
 
         function focusRawInput() {
             document.getElementById('rawInput').focus();
@@ -221,25 +276,47 @@
             document.querySelector('#uploadStatus span').innerText = "Klik untuk pilih file PDF";
             document.getElementById('resultContainer').classList.add('hidden');
             document.getElementById('emptyState').classList.remove('hidden');
+            globalRawData = [];
             extractedData = [];
+            if(chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+        }
+
+        function parseTimeStr(timeStr) {
+            if(timeStr.includes(' ')) {
+               if (timeStr.match(/^\d+\/\d+\/\d+/)) {
+                   timeStr = timeStr.split(' ').slice(1).join(' '); 
+               }
+            }
+            const parts = timeStr.trim().split(/[:\s]/);
+            let hours = parseInt(parts[0]);
+            const minutes = parseInt(parts[1]);
+            const ampm = parts[3] ? parts[3].toUpperCase() : '';
+
+            if (ampm === 'PM' && hours < 12) hours += 12;
+            if (ampm === 'AM' && hours === 12) hours = 0;
+            
+            return { h: hours, m: minutes };
+        }
+
+        function isTimeInShift(timeStr, shift) {
+            const { h } = parseTimeStr(timeStr);
+            if (shift === '1') return h >= 8 && h < 17;
+            else if (shift === '2') return h >= 17 && h < 21;
+            else if (shift === '3') return h >= 21 || h < 4;
+            return true;
         }
 
         function processData() {
             const input = document.getElementById('rawInput').value;
             if (!input.trim()) return;
 
-            // Normalize input
             const cleanInput = input.replace(/−/g, '-').replace(/”/g, '"').replace(/“/g, '"');
-
-            // Extract Date Range
-            const rangeMatch = cleanInput.match(/Report Time Span:\s*(.*?)(?=\n|Sensor Type|---|$)/i);
-            const dateRange = rangeMatch ? rangeMatch[1].trim() : '-';
-            document.getElementById('detectedRange').value = dateRange;
-
-            // Split into blocks per device report
             const blocks = cleanInput.split(/Report for\s+\(\d+\)\s+.*?Traffic/i);
             
-            const results = [];
+            globalRawData = []; 
 
             blocks.forEach((block, index) => {
                 if (index === 0 && !block.includes('Probe, Group, Device:')) return;
@@ -259,59 +336,230 @@
                 const coverageMatch = block.match(/Averages.*?\d+\s*%\s*(\d+)\s*%/);
                 const coverage = coverageMatch ? coverageMatch[1] + '%' : '100%';
 
-                const avgTrafficMatch = block.match(/Average\s*\(Traffic\s+(?:In|Total)\):\s*([\d,.]+)\s*Mbit\/s/i);
-                const avgTraffic = avgTrafficMatch ? avgTrafficMatch[1] : '-';
-
-                const tableRows = [];
+                const rawRows = [];
                 const rowRegex = /"(\d+\/\d+\/\d+)","(\d+:\d+:\d+\s+[AP]M.*?)"(?:,"[\d,.]+\s+MB")?,"([\d,.]+\s+Mbit\/s)"/g;
                 let match;
+                
                 while ((match = rowRegex.exec(block)) !== null) {
-                    tableRows.push({
+                    rawRows.push({
+                        date: match[1],
                         time: match[2].replace(/\s+/g, ' ').trim(),
                         speed: parseFloat(match[3].replace(',', '').trim())
                     });
                 }
 
-                if (tableRows.length === 0) {
-                    const fallbackRegex = /(\d+:\d+:\d+\s+[AP]M\s*-\s*\d+:\d+:\d+\s+[AP]M)\s*[\d,.]+\s*MB\s*([\d,.]+\s*Mbit\/s)/g;
+                if (rawRows.length === 0) {
+                    const fallbackRegex = /(\d+\/\d+\/\d+)\s+(\d+:\d+:\d+\s+[AP]M)\s*-\s*\d+:\d+:\d+\s+[AP]M\s*[\d,.]+\s*MB\s*([\d,.]+\s*Mbit\/s)/g;
                     while ((match = fallbackRegex.exec(block)) !== null) {
-                        tableRows.push({
-                            time: match[1].trim(),
-                            speed: parseFloat(match[2].replace(',', '').trim())
+                        rawRows.push({
+                            date: match[1],
+                            time: match[2].trim(),
+                            speed: parseFloat(match[3].replace(',', '').trim())
                         });
                     }
                 }
 
-                let highest = { speed: -1, time: '-' };
-                let lowest = { speed: Infinity, time: '-' };
-
-                tableRows.forEach(row => {
-                    if (row.speed > highest.speed) highest = row;
-                    if (row.speed < lowest.speed) lowest = row;
-                });
-
                 if (cleanName || uptime !== '-') {
-                    results.push({
+                    globalRawData.push({
                         deviceId: cleanName,
                         location: parentInfo,
                         uptime: uptime,
                         request: reqValue,
                         coverage: coverage,
-                        avg: avgTraffic,
+                        rows: rawRows
+                    });
+                }
+            });
+
+            if (globalRawData.length > 0 && globalRawData[0].rows.length > 0) {
+                const firstDate = globalRawData[0].rows[0].date;
+                const parts = firstDate.split('/');
+                if (parts.length === 3) {
+                    const y = parts[2];
+                    const m = parts[0].padStart(2, '0');
+                    const d = parts[1].padStart(2, '0');
+                    const isoDate = `${y}-${m}-${d}`;
+                    const dateInput = document.getElementById('filterDate');
+                    if (!dateInput.value) dateInput.value = isoDate;
+                }
+            }
+
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const dateFilter = document.getElementById('filterDate').value; 
+            const shiftFilter = document.getElementById('filterShift').value;
+            
+            const results = [];
+            const chartDatasets = [];
+            let chartLabels = [];
+            let isLabelsSet = false;
+
+            let filterDesc = "Semua Data";
+            if (dateFilter || shiftFilter !== 'all') {
+                filterDesc = "";
+                if (dateFilter) filterDesc += `Tgl: ${dateFilter} `;
+                if (shiftFilter !== 'all') filterDesc += `| Shift: ${shiftFilter}`;
+            }
+            document.getElementById('activeFilterInfo').value = filterDesc;
+
+            globalRawData.forEach((device, index) => {
+                let validRows = device.rows.filter(row => {
+                    let dateMatch = true;
+                    let shiftMatch = true;
+
+                    if (dateFilter) {
+                        const d1 = new Date(dateFilter);
+                        const d2 = new Date(row.date);
+                        dateMatch = d1.toDateString() === d2.toDateString();
+                    }
+
+                    if (shiftFilter !== 'all') {
+                        shiftMatch = isTimeInShift(row.time, shiftFilter);
+                    }
+
+                    return dateMatch && shiftMatch;
+                });
+
+                // --- CHART DATA PREPARATION ---
+                if (validRows.length > 0) {
+                     if (!isLabelsSet) {
+                        chartLabels = validRows.map(r => r.time);
+                        isLabelsSet = true;
+                    }
+                    
+                    const color = CHART_COLORS[index % CHART_COLORS.length];
+                    
+                    chartDatasets.push({
+                        label: device.deviceId,
+                        data: validRows.map(r => r.speed),
+                        borderColor: color,
+                        backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                        borderWidth: 2,
+                        pointRadius: 1,
+                        tension: 0.1, 
+                        fill: false
+                    });
+                }
+
+                // --- STATS CALCULATION ---
+                let highest = { speed: -1, time: '-' };
+                let lowest = { speed: Infinity, time: '-' };
+                let sum = 0;
+                
+                // Collect speeds for P95 calc
+                let speedArray = [];
+
+                validRows.forEach(r => {
+                    speedArray.push(r.speed);
+                    if (r.speed > highest.speed) highest = r;
+                    if (r.speed < lowest.speed) lowest = r;
+                    sum += r.speed;
+                });
+
+                // 95th Percentile Calculation
+                let p95Value = '-';
+                if (speedArray.length > 0) {
+                    // Sort numeric ascending
+                    speedArray.sort((a, b) => a - b);
+                    // Index calculation (95% of length)
+                    let index95 = Math.floor(speedArray.length * 0.95);
+                    // Safe guard index
+                    if (index95 >= speedArray.length) index95 = speedArray.length - 1;
+                    p95Value = speedArray[index95].toFixed(2) + ' Mbit/s';
+                }
+
+                let avg = validRows.length > 0 ? (sum / validRows.length).toFixed(2) : '-';
+
+                if (validRows.length > 0 || device.uptime !== '-') {
+                    results.push({
+                        deviceId: device.deviceId,
+                        location: device.location,
+                        uptime: device.uptime,
+                        request: device.request,
+                        coverage: device.coverage,
+                        avg: avg,
+                        p95: p95Value, // Data baru
                         max: highest.speed === -1 ? '-' : `${highest.speed} Mbit/s`,
-                        maxTime: highest.time.split('-')[0].trim().split(' ')[0] + ' ' + (highest.time.includes('AM') ? 'AM' : 'PM'),
+                        maxTime: highest.time !== '-' ? highest.time : '',
                         min: lowest.speed === Infinity ? '-' : `${lowest.speed} Mbit/s`,
-                        minTime: lowest.time.split('-')[0].trim().split(' ')[0] + ' ' + (lowest.time.includes('AM') ? 'AM' : 'PM')
+                        minTime: lowest.time !== '-' ? lowest.time : ''
                     });
                 }
             });
 
             extractedData = results;
+            renderTable(results);
+            renderChart(chartLabels, chartDatasets);
+
             if (results.length > 0) {
-                renderTable(results);
+                document.getElementById('resultContainer').classList.remove('hidden');
+                document.getElementById('emptyState').classList.add('hidden');
             } else {
-                alert('Tidak ada data valid yang ditemukan.');
+                alert('Tidak ada data yang cocok dengan filter Tanggal/Shift tersebut.');
+                document.getElementById('tableBody').innerHTML = '';
+                if(chartInstance) chartInstance.data.datasets = [];
             }
+        }
+
+        function renderChart(labels, datasets) {
+            const ctx = document.getElementById('trafficChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, 
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 10,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' Mbit/s';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            ticks: {
+                                maxTicksLimit: 10, 
+                                font: { size: 10 }
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Traffic (Mbit/s)',
+                                font: { size: 10 }
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
 
         function renderTable(data) {
@@ -327,11 +575,14 @@
                         <div class="text-[10px] text-slate-500 uppercase tracking-wider">${item.location}</div>
                     </td>
                     <td class="px-4 py-3 border-b text-slate-700 font-semibold text-center">${item.uptime}</td>
-                    <td class="px-4 py-3 border-b text-slate-600">${item.request}</td>
                     <td class="px-4 py-3 border-b text-center">
                         <span class="inline-block px-2 py-0.5 rounded bg-green-100 text-green-800 text-[10px] font-bold">${item.coverage}</span>
                     </td>
                     <td class="px-4 py-3 border-b bg-blue-50 font-bold text-blue-700 text-sm italic">${item.avg} <span class="text-[9px] font-normal not-italic">Mbps</span></td>
+                    <td class="px-4 py-3 border-b bg-indigo-50 border-l border-indigo-200">
+                         <div class="font-bold text-indigo-800">${item.p95}</div>
+                         <div class="text-[9px] text-indigo-400 font-medium">Burstable</div>
+                    </td>
                     <td class="px-4 py-3 border-b bg-blue-50">
                         <div class="font-bold text-slate-800">${item.max}</div>
                         <div class="text-[9px] text-blue-600 font-medium">${item.maxTime}</div>
@@ -343,10 +594,6 @@
                 `;
                 tableBody.appendChild(row);
             });
-
-            document.getElementById('resultContainer').classList.remove('hidden');
-            document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
         }
 
         function copyTable() {
@@ -356,14 +603,7 @@
             window.getSelection().addRange(range);
             try {
                 document.execCommand('copy');
-                const btn = event.currentTarget;
-                const originalText = btn.innerHTML;
-                btn.innerText = "Tersalin!";
-                btn.classList.replace('bg-slate-800', 'bg-green-600');
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.classList.replace('bg-green-600', 'bg-slate-800');
-                }, 2000);
+                alert('Tabel berhasil disalin!');
             } catch (err) {
                 alert('Gagal menyalin tabel.');
             }
@@ -374,11 +614,10 @@
             if (extractedData.length === 0) return;
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+            const doc = new jsPDF('l', 'mm', 'a4'); 
 
             const title = document.getElementById('pdfTitle').value || 'PRTG TRAFFIC REPORT';
-            const subtitle = document.getElementById('pdfSubtitle').value || 'Summary Extraction';
-            const dateRange = document.getElementById('detectedRange').value || '-';
+            const filterInfo = document.getElementById('activeFilterInfo').value;
             const notes = document.getElementById('pdfNotes').value || '';
 
             // Styling Header
@@ -388,34 +627,37 @@
 
             doc.setFontSize(11);
             doc.setTextColor(100);
-            doc.text(subtitle, 14, 27);
+            doc.text(`Filter: ${filterInfo}`, 14, 27);
 
-            doc.setFontSize(10);
-            doc.setTextColor(80);
-            doc.text(`Rentang Waktu: ${dateRange}`, 14, 34);
+            // Capture Chart as Image to add to PDF
+            const canvas = document.getElementById('trafficChart');
+            const chartImg = canvas.toDataURL('image/png', 1.0);
+            
+            doc.addImage(chartImg, 'PNG', 14, 35, 270, 80); 
 
             const tableRows = extractedData.map(item => [
                 `${item.deviceId}\n(${item.location})`,
                 item.uptime,
-                item.request,
                 item.coverage,
                 `${item.avg} Mbps`,
+                item.p95, // Add P95 to PDF
                 `${item.max}\n@ ${item.maxTime}`,
                 `${item.min}\n@ ${item.minTime}`
             ]);
 
             doc.autoTable({
-                head: [['Device Info', 'Uptime', 'Req Sensor', 'Cov', 'Avg Traffic IN', 'Highest (Peak)', 'Lowest (Trough)']],
+                head: [['Device Info', 'Uptime', 'Cov', 'Avg Traffic', '95th %', 'Highest (Peak)', 'Lowest (Trough)']],
                 body: tableRows,
-                startY: 40,
+                startY: 120, // Start below chart
                 theme: 'grid',
                 headStyles: { fillColor: [15, 23, 42], fontSize: 9, halign: 'center' },
                 styles: { fontSize: 8, valign: 'middle' },
                 columnStyles: {
                     0: { cellWidth: 45 },
                     1: { halign: 'center' },
-                    3: { halign: 'center' },
-                    4: { fontStyle: 'bold', textColor: [29, 78, 216] }
+                    2: { halign: 'center' },
+                    4: { fontStyle: 'bold', fillColor: [224, 231, 255], textColor: [55, 48, 163] }, // Highlight P95 column
+                    3: { fontStyle: 'bold', textColor: [29, 78, 216] }
                 }
             });
 
@@ -434,8 +676,8 @@
         }
     </script>
     <footer class="mt-12 py-4 text-center text-xs text-gray-400 border-t border-gray-200">
-  © 2026 · Created by <span class="text-gray-600 font-medium">Ramli Anton</span>
-</footer>
+      © 2026 · Created by <span class="text-gray-600 font-medium">Ramli Anton</span>
+    </footer>
 
 </body>
 </html>
